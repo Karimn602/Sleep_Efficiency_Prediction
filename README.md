@@ -18,7 +18,7 @@ The dataset used in this project contains several features related to sleep patt
 The target variable is Sleep Efficiency, which measures how efficiently the individual sleeps.
 
 # Dataset Source
-You can find various sleep datasets on platforms like Kaggle or Hugging Face Datasets. Alternatively, you can upload a compatible dataset directly for this project.
+You can find various sleep datasets on platforms like Kaggle or Hugging Face Datasets. Alternatively, you can upload a compatible dataset directly for this project.For my test I used a dataset i found in kaggle
 
 # Model Architecture
 The model is a simple feed-forward neural network with the following structure:
