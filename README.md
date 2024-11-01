@@ -35,23 +35,66 @@ The project is organized into modules for easy use and reusability:
 1. dataset_module.py
 This module contains the load_and_preprocess_data function, which handles data loading, preprocessing, and scaling.
 
-Function: load_and_preprocess_data(file_path)
-Input: Path to the CSV file containing sleep data.
-Output: Scaled training and test datasets (X_train_scaled, X_test_scaled, y_train, y_test).
-Description: Loads the dataset, drops irrelevant columns, handles missing values, encodes categorical variables, splits data into training and testing sets, and scales features.
-2. model_module.py
-This module contains the NeuralNetworkModel class, which defines the neural network structure, training, and evaluation methods.
+# dataset_module.py
 
-Class: NeuralNetworkModel
-Initialization Parameters: input_dim (number of input features), learning_rate (default is 0.001).
-Method: train(X_train, y_train, X_val, y_val, epochs=20, batch_size=10)
-Description: Trains the neural network on the given data.
-Parameters: X_train, y_train for training data; X_val, y_val for validation data; epochs and batch_size.
-Returns: Training history.
-Method: evaluate(X_test, y_test)
-Description: Evaluates the model on the test dataset.
-Parameters: X_test, y_test for testing.
-Returns: Test loss (MSE).
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+def load_and_preprocess_data(file_path):
+    """
+    Loads and preprocesses the dataset for training.
+
+    Parameters:
+    - file_path (str): Path to the CSV file.
+
+    Returns:
+    - X_train_scaled, X_test_scaled, y_train, y_test: Processed and scaled training and test data.
+    """
+    data = pd.read_csv(file_path)
+    data_cleaned = data.drop(columns=["ID", "Bedtime", "Wakeup time"]).dropna()
+    
+   
+    label_encoder = LabelEncoder()
+    data_cleaned['Gender'] = label_encoder.fit_transform(data_cleaned['Gender'])
+    data_cleaned['Smoking status'] = label_encoder.fit_transform(data_cleaned['Smoking status'])
+
+    
+    X = data_cleaned.drop(columns=["Sleep efficiency"]).values
+    y = data_cleaned["Sleep efficiency"].values
+
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    return X_train_scaled, X_test_scaled, y_train, y_test
+
+# model_module.py
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+
+class NeuralNetworkModel:
+    def __init__(self, input_dim, learning_rate=0.001):
+        self.model = Sequential([
+            Dense(64, input_dim=input_dim, activation='relu'),
+            Dense(32, activation='relu'),
+            Dense(1)  # Output layer for regression
+        ])
+        self.model.compile(loss='mean_squared_error', optimizer=Adam(learning_rate=learning_rate))
+    
+    def train(self, X_train, y_train, X_val, y_val, epochs=20, batch_size=10):
+        return self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val))
+    
+    def evaluate(self, X_test, y_test):
+        test_loss = self.model.evaluate(X_test, y_test)
+        print(f"Test Loss (Mean Squared Error): {test_loss}")
+        return test_loss
+
 3. Jupyter Notebook (Sleep_Efficiency_Prediction_Notebook.ipynb)
 This notebook demonstrates how to use the modules to load data, initialize the model, train, and evaluate it.
 
