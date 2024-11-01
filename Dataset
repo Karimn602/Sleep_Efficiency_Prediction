@@ -1,0 +1,36 @@
+# neural_network.py
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam  
+
+def load_and_preprocess_data(filename):
+    data = pd.read_csv(filename)
+    data_cleaned = data.drop(columns=["ID", "Bedtime", "Wakeup time"])
+    label_encoder = LabelEncoder()
+    data_cleaned['Gender'] = label_encoder.fit_transform(data_cleaned['Gender'])
+    data_cleaned['Smoking status'] = label_encoder.fit_transform(data_cleaned['Smoking status'])
+    X = data_cleaned.drop(columns=["Sleep efficiency"]).values
+    y = data_cleaned["Sleep efficiency"].values
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    return X_train_scaled, X_test_scaled, y_train, y_test
+
+class NeuralNetwork:
+    def __init__(self, input_dim):
+        self.model = Sequential([
+            Dense(64, input_dim=input_dim, activation='relu'),
+            Dense(32, activation='relu'),
+            Dense(1)
+        ])
+        self.model.compile(optimizer='adam', loss='mean_squared_error')
+
+    def train(self, X_train, y_train, X_val, y_val, epochs=20, batch_size=10):
+        return self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_val, y_val))
+
+    def evaluate(self, X_test, y_test):
+        return self.model.evaluate(X_test, y_test)
